@@ -8,8 +8,10 @@
 #include<sys/socket.h>
 #include <unistd.h>
 
+#include <CentauroUDP/packet/master2slave.h>
+
 #define RECEIVER "192.168.0.2"
-#define BUFLEN 512  //Max length of buffer
+#define BUFLEN sizeof(CentauroUDP::packet::master2slave)  //Max length of buffer
 #define PORT 16000   //The port on which to listen for incoming data
  
 void die(char *s)
@@ -24,7 +26,7 @@ int main(void)
      
     int s, i , recv_len;
     uint slen = sizeof(si_other);
-    char buf[BUFLEN];
+    struct CentauroUDP::packet::master2slave *pkt = (CentauroUDP::packet::master2slave *)malloc(BUFLEN);
      
     //create a UDP socket
     if ((s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
@@ -52,20 +54,15 @@ int main(void)
         fflush(stdout);
          
         //try to receive some data, this is a blocking call
-        if ((recv_len = recvfrom(s, buf, BUFLEN, 0, (struct sockaddr *) &si_other, &slen)) == -1)
+        if ((recv_len = recvfrom(s, pkt, BUFLEN, 0, (struct sockaddr *) &si_other, &slen)) == -1)
         {
             die("recvfrom()");
         }
          
         //print details of the client/peer and the data received
         printf("Received packet from %s:%d\n", inet_ntoa(si_other.sin_addr), ntohs(si_other.sin_port));
-        printf("Data: %s\n" , buf);
-         
-        //now reply the client with the same data
-        if (sendto(s, buf, recv_len, 0, (struct sockaddr*) &si_other, slen) == -1)
-        {
-            die("sendto()");
-        }
+        printf("Data: %s\n" , pkt);
+
     }
  
     close(s);
