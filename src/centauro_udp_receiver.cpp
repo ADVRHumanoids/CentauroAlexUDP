@@ -61,7 +61,24 @@ int main(void)
          
         //print details of the client/peer and the data received
         printf("Received packet from %s:%d\n", inet_ntoa(si_other.sin_addr), ntohs(si_other.sin_port));
-        printf("Data: %f\n" , pkt->l_position_x);
+        
+        // printf test
+        printf("l_handle_trigger: %f\n" , pkt->l_handle_trigger);
+        printf("l_position_x: %f\n" , pkt->l_position_x);
+        printf("l_position_y: %f\n" , pkt->l_position_y);
+        printf("l_position_z: %f\n" , pkt->l_position_z);
+        printf("l_velocity_x: %f\n" , pkt->l_velocity_x);
+        printf("l_velocity_y: %f\n" , pkt->l_velocity_y);
+        printf("l_velocity_z: %f\n" , pkt->l_velocity_z);
+        
+        printf("r_handle_trigger: %f\n" , pkt->r_handle_trigger);
+        printf("r_position_x: %f\n" , pkt->r_position_x);
+        printf("r_position_y: %f\n" , pkt->r_position_y);
+        printf("r_position_z: %f\n" , pkt->r_position_z);
+        printf("r_velocity_x: %f\n" , pkt->r_velocity_x);
+        printf("r_velocity_y: %f\n" , pkt->r_velocity_y);
+        printf("r_velocity_z: %f\n" , pkt->r_velocity_z);
+        
 
     }
  
