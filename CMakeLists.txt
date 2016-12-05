@@ -42,7 +42,7 @@ add_executable(centauro_udp_receiver
 )
 
 add_executable(centauro_udp_sender
-    src/centauro_udp_receiver.cpp
+    src/centauro_udp_sender.cpp
 )
 
 # set Xenomain flags if Xenomai is founded
