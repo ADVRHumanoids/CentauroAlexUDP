@@ -1,5 +1,5 @@
 /*
-    Simple udp client
+    Simple udp master
 */
 #include<stdio.h> //printf
 #include<string.h> //memset
@@ -8,9 +8,9 @@
 #include<sys/socket.h>
 #include <unistd.h>
  
-#define SERVER "127.0.0.1"
+#define SERVER "192.168.0.10"
 #define BUFLEN 512  //Max length of buffer
-#define PORT 8888   //The port on which to send data
+#define PORT 16000   //The port on which to send data
  
 void die(char *s)
 {

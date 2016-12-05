@@ -1,5 +1,5 @@
 /*
-    Simple udp server
+    Simple udp slave
 */
 #include<stdio.h> //printf
 #include<string.h> //memset
@@ -9,7 +9,7 @@
 #include <unistd.h>
 
 #define BUFLEN 512  //Max length of buffer
-#define PORT 8888   //The port on which to listen for incoming data
+#define PORT 16000   //The port on which to listen for incoming data
  
 void die(char *s)
 {
