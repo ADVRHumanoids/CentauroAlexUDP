@@ -8,7 +8,7 @@
 #include<sys/socket.h>
 #include <unistd.h>
  
-#define SERVER "192.168.0.10"
+#define RECEIVER "192.168.0.2"
 #define BUFLEN 512  //Max length of buffer
 #define PORT 16000   //The port on which to send data
  
@@ -35,7 +35,7 @@ int main(void)
     si_other.sin_family = AF_INET;
     si_other.sin_port = htons(PORT);
      
-    if (inet_aton(SERVER , &si_other.sin_addr) == 0)
+    if (inet_aton(RECEIVER , &si_other.sin_addr) == 0)
     {
         fprintf(stderr, "inet_aton() failed\n");
         exit(1);

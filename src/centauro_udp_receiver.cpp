@@ -8,6 +8,7 @@
 #include<sys/socket.h>
 #include <unistd.h>
 
+#define RECEIVER "192.168.0.2"
 #define BUFLEN 512  //Max length of buffer
 #define PORT 16000   //The port on which to listen for incoming data
  
@@ -36,7 +37,7 @@ int main(void)
      
     si_me.sin_family = AF_INET;
     si_me.sin_port = htons(PORT);
-    si_me.sin_addr.s_addr = htonl(INADDR_ANY);
+    si_me.sin_addr.s_addr = inet_addr(RECEIVER);
      
     //bind socket to port
     if( bind(s , (struct sockaddr*)&si_me, sizeof(si_me) ) == -1)
