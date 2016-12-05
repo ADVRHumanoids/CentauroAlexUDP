@@ -44,7 +44,7 @@ int main(void)
  
     while(1)
     {
-         
+         pkt->l_position_x = 0.255;
         //send the message
         if (sendto(s, pkt, BUFLEN , 0 , (struct sockaddr *) &si_other, slen)==-1)
         {
