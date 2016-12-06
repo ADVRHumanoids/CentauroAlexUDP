@@ -6,6 +6,7 @@ project(CentauroUDP)
 
 # Add cmake dir and include custom macros
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
+include(MacroOptionalBuild)
 
 # C++11 
 include(CheckCXXCompilerFlag)
@@ -26,114 +27,119 @@ if ( ${ENABLE_XENO} )
    find_package(RTnet)
 endif()
 
+set(COMPILE_SENDER CACHE BOOL "OFF")
+set(COMPILE_RECEIVER CACHE BOOL "OFF")
 
 # include 
 include_directories(include) 
 
-# exe
-add_executable(centauro_udp_receiver
-    src/centauro_udp_receiver.cpp
-    src/rt_ipc.cpp
-)
-
-add_executable(centauro_udp_sender
-    src/centauro_udp_sender.cpp
-)
-
-# set Xenomain flags if Xenomai is founded
-if ( Xenomai_FOUND )
-   set_xeno_flags(centauro_udp_receiver)
-   set_xeno_flags(centauro_udp_sender)
-endif()
-
-#target_link_libraries(${PROJECT_NAME})
                                       
 ########################################################################
 
-set(VARS_PREFIX centauro_udp_sender)
+IF( ${COMPILE_SENDER} )
 
-set(centauro_udp_sender_MAJOR_VERSION 0)
-set(centauro_udp_sender_MINOR_VERSION 0)
-set(centauro_udp_sender_PATCH_VERSION 1)
-set(centauro_udp_sender_VERSION ${centauro_udp_sender_MAJOR_VERSION}.${centauro_udp_sender_MINOR_VERSION}.${centauro_udp_sender_PATCH_VERSION})
+    add_executable(centauro_udp_sender
+        src/centauro_udp_sender.cpp
+    )
 
-find_package(YCM REQUIRED)
-include(YCMDefaultDirs)
-ycm_default_dirs(${VARS_PREFIX})
+    set(VARS_PREFIX centauro_udp_sender)
 
-target_include_directories(centauro_udp_sender PUBLIC "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/src>"
-                                                "$<INSTALL_INTERFACE:${${VARS_PREFIX}_INSTALL_INCLUDEDIR}>")
+    set(centauro_udp_sender_MAJOR_VERSION 0)
+    set(centauro_udp_sender_MINOR_VERSION 0)
+    set(centauro_udp_sender_PATCH_VERSION 1)
+    set(centauro_udp_sender_VERSION ${centauro_udp_sender_MAJOR_VERSION}.${centauro_udp_sender_MINOR_VERSION}.${centauro_udp_sender_PATCH_VERSION})
 
-set_target_properties(centauro_udp_sender PROPERTIES VERSION ${${VARS_PREFIX}_VERSION}
-                                               SOVERSION ${${VARS_PREFIX}_VERSION})
+    find_package(YCM REQUIRED)
+    include(YCMDefaultDirs)
+    ycm_default_dirs(${VARS_PREFIX})
 
-install(DIRECTORY include/
-        DESTINATION "${${VARS_PREFIX}_INSTALL_INCLUDEDIR}"
-        FILES_MATCHING PATTERN "*.h*")
+    target_include_directories(centauro_udp_sender PUBLIC "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/src>"
+                                                    "$<INSTALL_INTERFACE:${${VARS_PREFIX}_INSTALL_INCLUDEDIR}>")
 
-install(TARGETS centauro_udp_sender
-        EXPORT centauro_udp_sender
-        ARCHIVE DESTINATION "${${VARS_PREFIX}_INSTALL_BINDIR}" COMPONENT lib
-        RUNTIME DESTINATION "${${VARS_PREFIX}_INSTALL_BINDIR}" COMPONENT bin
-        LIBRARY DESTINATION "${${VARS_PREFIX}_INSTALL_LIBDIR}" COMPONENT shlib)
+    set_target_properties(centauro_udp_sender PROPERTIES VERSION ${${VARS_PREFIX}_VERSION}
+                                                SOVERSION ${${VARS_PREFIX}_VERSION})
+
+    install(DIRECTORY include/
+            DESTINATION "${${VARS_PREFIX}_INSTALL_INCLUDEDIR}"
+            FILES_MATCHING PATTERN "*.h*")
+
+    install(TARGETS centauro_udp_sender
+            EXPORT centauro_udp_sender
+            ARCHIVE DESTINATION "${${VARS_PREFIX}_INSTALL_BINDIR}" COMPONENT lib
+            RUNTIME DESTINATION "${${VARS_PREFIX}_INSTALL_BINDIR}" COMPONENT bin
+            LIBRARY DESTINATION "${${VARS_PREFIX}_INSTALL_LIBDIR}" COMPONENT shlib)
 
 
 
-#enabling it will add all the project  dependencies as dependencies for third eparty users
-set_property(GLOBAL APPEND PROPERTY ${VARS_PREFIX}_TARGETS centauro_udp_sender)
+    #enabling it will add all the project  dependencies as dependencies for third eparty users
+    set_property(GLOBAL APPEND PROPERTY ${VARS_PREFIX}_TARGETS centauro_udp_sender)
 
 
-include(InstallBasicPackageFiles)
-install_basic_package_files(centauro_udp_sender VARS_PREFIX ${VARS_PREFIX}
-                                    VERSION ${${VARS_PREFIX}_VERSION}
-                                    COMPATIBILITY SameMajorVersion
-                                    TARGETS_PROPERTY ${VARS_PREFIX}_TARGETS
-                                    NO_CHECK_REQUIRED_COMPONENTS_MACRO)                                    
+    include(InstallBasicPackageFiles)
+    install_basic_package_files(centauro_udp_sender VARS_PREFIX ${VARS_PREFIX}
+                                        VERSION ${${VARS_PREFIX}_VERSION}
+                                        COMPATIBILITY SameMajorVersion
+                                        TARGETS_PROPERTY ${VARS_PREFIX}_TARGETS
+                                        NO_CHECK_REQUIRED_COMPONENTS_MACRO)                                    
 
+ENDIF(${COMPILE_SENDER})
                                     
 ########################################################################
 
-set(VARS_PREFIX centauro_udp_receiver)
+IF(${COMPILE_RECEIVER})
 
-set(centauro_udp_receiver_MAJOR_VERSION 0)
-set(centauro_udp_receiver_MINOR_VERSION 0)
-set(centauro_udp_receiver_PATCH_VERSION 1)
-set(centauro_udp_receiver_VERSION ${centauro_udp_receiver_MAJOR_VERSION}.${centauro_udp_receiver_MINOR_VERSION}.${centauro_udp_receiver_PATCH_VERSION})
-
-find_package(YCM REQUIRED)
-include(YCMDefaultDirs)
-ycm_default_dirs(${VARS_PREFIX})
-
-target_include_directories(centauro_udp_receiver PUBLIC "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/src>"
-                                                "$<INSTALL_INTERFACE:${${VARS_PREFIX}_INSTALL_INCLUDEDIR}>")
-
-set_target_properties(centauro_udp_receiver PROPERTIES VERSION ${${VARS_PREFIX}_VERSION}
-                                               SOVERSION ${${VARS_PREFIX}_VERSION})
-
-install(DIRECTORY include/
-        DESTINATION "${${VARS_PREFIX}_INSTALL_INCLUDEDIR}"
-        FILES_MATCHING PATTERN "*.h*")
-
-install(TARGETS centauro_udp_receiver
-        EXPORT centauro_udp_receiver
-        ARCHIVE DESTINATION "${${VARS_PREFIX}_INSTALL_BINDIR}" COMPONENT lib
-        RUNTIME DESTINATION "${${VARS_PREFIX}_INSTALL_BINDIR}" COMPONENT bin
-        LIBRARY DESTINATION "${${VARS_PREFIX}_INSTALL_LIBDIR}" COMPONENT shlib)
+    # exe
+    add_executable(centauro_udp_receiver
+        src/centauro_udp_receiver.cpp
+        src/rt_ipc.cpp
+    )
 
 
-
-#enabling it will add all the project  dependencies as dependencies for third eparty users
-set_property(GLOBAL APPEND PROPERTY ${VARS_PREFIX}_TARGETS centauro_udp_receiver)
-
-
-include(InstallBasicPackageFiles)
-install_basic_package_files(centauro_udp_receiver VARS_PREFIX ${VARS_PREFIX}
-                                    VERSION ${${VARS_PREFIX}_VERSION}
-                                    COMPATIBILITY SameMajorVersion
-                                    TARGETS_PROPERTY ${VARS_PREFIX}_TARGETS
-                                    NO_CHECK_REQUIRED_COMPONENTS_MACRO)                                       
-                                    
-include(AddUninstallTarget)
+    # set Xenomain flags if Xenomai is founded
+    if ( Xenomai_FOUND )
+    set_xeno_flags(centauro_udp_receiver)
+    endif()
 
 
+    set(VARS_PREFIX centauro_udp_receiver)
+
+    set(centauro_udp_receiver_MAJOR_VERSION 0)
+    set(centauro_udp_receiver_MINOR_VERSION 0)
+    set(centauro_udp_receiver_PATCH_VERSION 1)
+    set(centauro_udp_receiver_VERSION ${centauro_udp_receiver_MAJOR_VERSION}.${centauro_udp_receiver_MINOR_VERSION}.${centauro_udp_receiver_PATCH_VERSION})
+
+    find_package(YCM REQUIRED)
+    include(YCMDefaultDirs)
+    ycm_default_dirs(${VARS_PREFIX})
+
+    target_include_directories(centauro_udp_receiver PUBLIC "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/src>"
+                                                    "$<INSTALL_INTERFACE:${${VARS_PREFIX}_INSTALL_INCLUDEDIR}>")
+
+    set_target_properties(centauro_udp_receiver PROPERTIES VERSION ${${VARS_PREFIX}_VERSION}
+                                                SOVERSION ${${VARS_PREFIX}_VERSION})
+
+    install(DIRECTORY include/
+            DESTINATION "${${VARS_PREFIX}_INSTALL_INCLUDEDIR}"
+            FILES_MATCHING PATTERN "*.h*")
+
+    install(TARGETS centauro_udp_receiver
+            EXPORT centauro_udp_receiver
+            ARCHIVE DESTINATION "${${VARS_PREFIX}_INSTALL_BINDIR}" COMPONENT lib
+            RUNTIME DESTINATION "${${VARS_PREFIX}_INSTALL_BINDIR}" COMPONENT bin
+            LIBRARY DESTINATION "${${VARS_PREFIX}_INSTALL_LIBDIR}" COMPONENT shlib)
+
+
+
+    #enabling it will add all the project  dependencies as dependencies for third eparty users
+    set_property(GLOBAL APPEND PROPERTY ${VARS_PREFIX}_TARGETS centauro_udp_receiver)
+
+
+    include(InstallBasicPackageFiles)
+    install_basic_package_files(centauro_udp_receiver VARS_PREFIX ${VARS_PREFIX}
+                                        VERSION ${${VARS_PREFIX}_VERSION}
+                                        COMPATIBILITY SameMajorVersion
+                                        TARGETS_PROPERTY ${VARS_PREFIX}_TARGETS
+                                        NO_CHECK_REQUIRED_COMPONENTS_MACRO)                                       
+
+ENDIF(${COMPILE_RECEIVER})
 
