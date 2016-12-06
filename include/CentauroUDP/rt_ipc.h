@@ -22,6 +22,7 @@ purpose.
 extern "C" {
 #endif
 
+    // Luca vegan
 
 int xddp_bind ( const char * label, size_t poolsz );
 
