@@ -7,6 +7,7 @@
 #include<arpa/inet.h>
 #include<sys/socket.h>
 #include <unistd.h>
+#include <time.h>
 
 #include <CentauroUDP/packet/master2slave.h>
  
@@ -41,15 +42,24 @@ int main(void)
         fprintf(stderr, "inet_aton() failed\n");
         exit(1);
     }
+    
+    // test initialization
+    pkt->l_position_x = 0.255;
+    pkt->l_position_y = 0.355;
+    pkt->l_position_z = -1.555;
  
     while(1)
     {
-         pkt->l_position_x = 0.255;
+         pkt->l_position_x += 0.001;
+         pkt->l_position_y -= 0.001;
+         pkt->l_position_z += 0.001;
         //send the message
         if (sendto(s, pkt, BUFLEN , 0 , (struct sockaddr *) &si_other, slen)==-1)
         {
             die("sendto()");
         }
+        usleep(10000); // 10 ms
+        
     }
  
     close(s);

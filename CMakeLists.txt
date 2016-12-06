@@ -4,6 +4,9 @@ cmake_minimum_required(VERSION 3.0.0)
 # centauro UDP receiver
 project(CentauroUDP)
 
+# Add cmake dir and include custom macros
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
+
 # C++11 
 include(CheckCXXCompilerFlag)
 check_cxx_compiler_flag("-std=c++11" COMPILER_SUPPORTS_CXX11)
@@ -17,20 +20,11 @@ else()
 endif()
 
 # Enable Xenomai flag and if enabled find required packages
-#set(ENABLE_XENO CACHE BOOL "ON")
-#if ( ${ENABLE_XENO} )
-#    find_package(Xenomai)
-#    find_package(RTnet)
-#endif()
-
-#if ( Xenomai_FOUND )
-#    set(LIB_TYPE _rt)
-#else ()
-#    set(LIB_TYPE _nrt)
-#endif()
-
-# find packages 
-
+set(ENABLE_XENO CACHE BOOL "ON")
+if ( ${ENABLE_XENO} )
+   find_package(Xenomai)
+   find_package(RTnet)
+endif()
 
 
 # include 
@@ -39,6 +33,7 @@ include_directories(include)
 # exe
 add_executable(centauro_udp_receiver
     src/centauro_udp_receiver.cpp
+    src/rt_ipc.cpp
 )
 
 add_executable(centauro_udp_sender
@@ -46,10 +41,10 @@ add_executable(centauro_udp_sender
 )
 
 # set Xenomain flags if Xenomai is founded
-#if ( Xenomai_FOUND )
-#    set_xeno_flags(${PROJECT_NAME})
-#    set_xeno_flags(XBotPluginHandler)
-#endif()
+if ( Xenomai_FOUND )
+   set_xeno_flags(centauro_udp_receiver)
+   set_xeno_flags(centauro_udp_sender)
+endif()
 
 #target_link_libraries(${PROJECT_NAME})
                                       
