@@ -88,18 +88,20 @@ ENDIF(${COMPILE_SENDER})
 
 IF(${COMPILE_RECEIVER})
 
-    # exe
-    add_executable(centauro_udp_receiver
-        src/centauro_udp_receiver.cpp
-#         src/rt_ipc.cpp
-    )
-
-
     # set Xenomain flags if Xenomai is founded
     if ( Xenomai_FOUND )
-    set_xeno_flags(centauro_udp_receiver)
+        # exe
+        add_executable(centauro_udp_receiver
+            src/centauro_udp_receiver.cpp
+            src/rt_ipc.cpp
+        )
+        set_xeno_flags(centauro_udp_receiver)
+    else ()
+        # exe
+        add_executable(centauro_udp_receiver
+            src/centauro_udp_receiver.cpp
+        )
     endif()
-
 
     set(VARS_PREFIX centauro_udp_receiver)
 
