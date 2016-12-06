@@ -91,7 +91,7 @@ IF(${COMPILE_RECEIVER})
     # exe
     add_executable(centauro_udp_receiver
         src/centauro_udp_receiver.cpp
-        src/rt_ipc.cpp
+#         src/rt_ipc.cpp
     )
 
 

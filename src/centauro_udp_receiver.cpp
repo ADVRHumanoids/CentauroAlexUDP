@@ -33,8 +33,14 @@ int main(void)
     struct CentauroUDP::packet::master2slave *pkt = (CentauroUDP::packet::master2slave *)malloc(BUFLEN);
     
     // UDP pipe
-    CentauroUDP::XDDP_pipe exoskeleton_pipe;
-    exoskeleton_pipe.init( "exoskeleton_pipe");
+//     CentauroUDP::XDDP_pipe exoskeleton_pipe;
+//     exoskeleton_pipe.init( "exoskeleton_pipe");
+    int exoskeleton_fd = open((pipe_prefix+std::string("exoskeleton_pipe")).c_str(), O_WRONLY);
+    if( exoskeleton_fd < 0 ){
+        die("Open exoskeleton_fd");
+    }
+    printf("fd : %d\n", exoskeleton_fd);
+    fflush(stdout);
      
     //create a UDP socket
     if ((s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
@@ -84,15 +90,16 @@ int main(void)
 //         printf("l_velocity_z: %f\n" , pkt->l_velocity_z);
 //         
 //         printf("r_handle_trigger: %f\n" , pkt->r_handle_trigger);
-//         printf("r_position_x: %f\n" , pkt->r_position_x);
-//         printf("r_position_y: %f\n" , pkt->r_position_y);
-//         printf("r_position_z: %f\n" , pkt->r_position_z);
+        printf("r_position_x: %f\n" , pkt->r_position_x);
+        printf("r_position_y: %f\n" , pkt->r_position_y);
+        printf("r_position_z: %f\n" , pkt->r_position_z);
 //         printf("r_velocity_x: %f\n" , pkt->r_velocity_x);
 //         printf("r_velocity_y: %f\n" , pkt->r_velocity_y);
 //         printf("r_velocity_z: %f\n" , pkt->r_velocity_z);
         
         // write on exoskeleton_pipe
-        exoskeleton_pipe.xddp_write<CentauroUDP::packet::master2slave>(*pkt);        
+//         exoskeleton_pipe.xddp_write<CentauroUDP::packet::master2slave>(*pkt);   
+        int bytes = write(exoskeleton_fd, (void *)pkt, BUFLEN);
 
     }
  
