@@ -11,11 +11,15 @@
 #include <CentauroUDP/pipes.h>
 
 #include <CentauroUDP/packet/master2slave.h>
+#include <CentauroUDP/packet/slave2master.h>
 
+#define SENDER "192.168.0.10"
 #define RECEIVER "192.168.0.2"
-#define BUFLEN sizeof(CentauroUDP::packet::master2slave)  //Max length of buffer
-#define PORT 16000   //The port on which to listen for incoming data
- 
+#define BUFLEN_MASTER_2_SLAVE sizeof(CentauroUDP::packet::master2slave) 
+#define BUFLEN_SLAVE_2_MASTER sizeof(CentauroUDP::packet::slave2master)
+#define PORT_MASTER_2_SLAVE 16000   //The port on which to listen for incoming data
+#define PORT_SLAVE_2_MASTER 16001   //The port on which to listen for incoming data
+
 void die(char *s)
 {
     perror(s);
@@ -30,16 +34,25 @@ int main(void)
     uint slen = sizeof(si_other);
     
     // master to slave packet
-    struct CentauroUDP::packet::master2slave *pkt = (CentauroUDP::packet::master2slave *)malloc(BUFLEN);
+    struct CentauroUDP::packet::master2slave *pkt = (CentauroUDP::packet::master2slave *)malloc(BUFLEN_MASTER_2_SLAVE);
     
-    // UDP pipe
-//     CentauroUDP::XDDP_pipe exoskeleton_pipe;
-//     exoskeleton_pipe.init( "exoskeleton_pipe");
+    // slave to master packet
+    struct CentauroUDP::packet::slave2master *pkt_to_send = (CentauroUDP::packet::slave2master *)malloc(BUFLEN_SLAVE_2_MASTER);
+    
+    // exoskeleton pipe
     int exoskeleton_fd = open((pipe_prefix+std::string("exoskeleton_pipe")).c_str(), O_WRONLY);
     if( exoskeleton_fd < 0 ){
         die("Open exoskeleton_fd");
     }
     printf("fd : %d\n", exoskeleton_fd);
+    fflush(stdout);
+    
+    // robot pipe
+    int robot_fd = open((pipe_prefix+std::string("robot_pipe")).c_str(), O_RDONLY);
+    if( robot_fd < 0 ){
+        die("Open robot_fd");
+    }
+    printf("fd : %d\n", robot_fd);
     fflush(stdout);
      
     //create a UDP socket
@@ -53,7 +66,7 @@ int main(void)
     
     // initialize address to bind
     si_me.sin_family = AF_INET;
-    si_me.sin_port = htons(PORT);
+    si_me.sin_port = htons(PORT_MASTER_2_SLAVE);
     si_me.sin_addr.s_addr = inet_addr(RECEIVER);
      
     //bind socket to port
@@ -61,6 +74,17 @@ int main(void)
     {
         die("bind");
     }
+    
+    // initialize master address
+    memset((char *) &si_other, 0, sizeof(si_other));
+    si_other.sin_family = AF_INET;
+    si_other.sin_port = htons(PORT_SLAVE_2_MASTER);
+    if (inet_aton(SENDER , &si_other.sin_addr) == 0)
+    {
+        fprintf(stderr, "inet_aton() failed\n");
+        exit(1);
+    }
+        
      
     //keep listening for data
     while(1)
@@ -69,7 +93,7 @@ int main(void)
         fflush(stdout);
          
         //try to receive some data, this is a blocking call
-        if ((recv_len = recvfrom(s, pkt, BUFLEN, 0, (struct sockaddr *) &si_other, &slen)) == -1)
+        if ((recv_len = recvfrom(s, pkt, BUFLEN_MASTER_2_SLAVE, 0, (struct sockaddr *) &si_other, &slen)) == -1)
         {
             die("recvfrom()");
         }
@@ -99,10 +123,20 @@ int main(void)
         
         // write on exoskeleton_pipe
 //         exoskeleton_pipe.xddp_write<CentauroUDP::packet::master2slave>(*pkt);   
-        int bytes = write(exoskeleton_fd, (void *)pkt, BUFLEN);
-
+        int bytes = write(exoskeleton_fd, (void *)pkt, BUFLEN_MASTER_2_SLAVE);
+        
+        // read from robot pipe
+        bytes = read(robot_fd, (void *)pkt_to_send, BUFLEN_SLAVE_2_MASTER);
+        //send the message
+        if (sendto(s, pkt_to_send, BUFLEN_SLAVE_2_MASTER , 0 , (struct sockaddr *) &si_other, slen)==-1)
+        {
+            die("sendto()");
+        }
+        usleep(10000);
     }
  
     close(s);
+    close(robot_fd);
+    close(exoskeleton_fd);
     return 0;
 }

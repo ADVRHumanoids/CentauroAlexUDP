@@ -25,35 +25,23 @@
 */
 
 
-#ifndef __CENTAURO_UDP_PACKET_MASTER_2_SLAVE_H__
-#define __CENTAURO_UDP_PACKET_MASTER_2_SLAVE_H__
+#ifndef __CENTAURO_UDP_PACKET_SLAVE_2_MASTER_H__
+#define __CENTAURO_UDP_PACKET_SLAVE_2_MASTER_H__
 
 namespace CentauroUDP {
     namespace packet {
-        struct master2slave{
-            float timer_master;
+        struct slave2master{
             float timer_slave;
-            float run;
+            float status;
             // 1 is right
-            float r_position_x;
-            float r_position_y;
-            float r_position_z;
-            float r_rotation[9]; // column major ordered
-            float r_velocity_x;
-            float r_velocity_y;
-            float r_velocity_z;
-            float r_handle_trigger;
-            // 2 is left
-            float l_position_x;
-            float l_position_y;
-            float l_position_z;
-            float l_rotation[9]; // column major ordered
-            float l_velocity_x;
-            float l_velocity_y;
-            float l_velocity_z;
-            float l_handle_trigger;
-            
+            float r_force_x;
+            float r_force_y;
+            float r_force_z;
+            // 2 is right
+            float l_force_x;
+            float l_force_y;
+            float l_force_z;
         };
     }   
 }
-#endif //__CENTAURO_UDP_PACKET_MASTER_2_SLAVE_H__
+#endif //__CENTAURO_UDP_PACKET_SLAVE_2_MASTER_H__
