@@ -13,7 +13,7 @@
 #include <CentauroUDP/packet/master2slave.h>
 #include <CentauroUDP/packet/slave2master.h>
 
-#define SENDER "192.168.0.10"
+#define SENDER "192.168.0.215"
 #define RECEIVER "192.168.0.2"
 #define BUFLEN_MASTER_2_SLAVE sizeof(CentauroUDP::packet::master2slave) 
 #define BUFLEN_SLAVE_2_MASTER sizeof(CentauroUDP::packet::slave2master)
@@ -29,8 +29,8 @@ void die(char *s)
 int main(void)
 {
     // UDP related stuffs
-    struct sockaddr_in si_me, si_other;
-    int s, i , recv_len;
+    struct sockaddr_in si_me, si_other, si_recv;
+    int s, s_send, i , recv_len;
     uint slen = sizeof(si_other);
     
     // master to slave packet
@@ -57,6 +57,12 @@ int main(void)
      
     //create a UDP socket
     if ((s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
+    {
+        die("socket");
+    }
+    
+    //create send UDP socket
+    if ((s_send=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
     {
         die("socket");
     }
@@ -93,13 +99,10 @@ int main(void)
         fflush(stdout);
          
         //try to receive some data, this is a blocking call
-        if ((recv_len = recvfrom(s, pkt, BUFLEN_MASTER_2_SLAVE, 0, (struct sockaddr *) &si_other, &slen)) == -1)
+        if ((recv_len = recvfrom(s, pkt, BUFLEN_MASTER_2_SLAVE, 0, (struct sockaddr *) &si_recv, &slen)) == -1)
         {
             die("recvfrom()");
         }
-         
-        //print details of the client/peer and the data received
-        printf("Received packet from %s:%d\n", inet_ntoa(si_other.sin_addr), ntohs(si_other.sin_port));
         
         
         printf("timer %f \n", pkt->timer_master);
@@ -122,13 +125,12 @@ int main(void)
 //         printf("r_velocity_z: %f\n" , pkt->r_velocity_z);
         
         // write on exoskeleton_pipe
-//         exoskeleton_pipe.xddp_write<CentauroUDP::packet::master2slave>(*pkt);   
         int bytes = write(exoskeleton_fd, (void *)pkt, BUFLEN_MASTER_2_SLAVE);
         
         // read from robot pipe
         bytes = read(robot_fd, (void *)pkt_to_send, BUFLEN_SLAVE_2_MASTER);
         //send the message
-        if (sendto(s, pkt_to_send, BUFLEN_SLAVE_2_MASTER , 0 , (struct sockaddr *) &si_other, slen)==-1)
+        if (sendto(s_send, pkt_to_send, BUFLEN_SLAVE_2_MASTER , 0 , (struct sockaddr *) &si_other, slen)==-1)
         {
             die("sendto()");
         }
@@ -136,6 +138,7 @@ int main(void)
     }
  
     close(s);
+    close(s_send);
     close(robot_fd);
     close(exoskeleton_fd);
     return 0;
