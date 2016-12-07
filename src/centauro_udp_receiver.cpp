@@ -13,7 +13,8 @@
 #include <CentauroUDP/packet/master2slave.h>
 #include <CentauroUDP/packet/slave2master.h>
 
-#define SENDER "192.168.0.215"
+// #define SENDER "192.168.0.215"
+#define SENDER "192.168.0.10"
 #define RECEIVER "192.168.0.2"
 #define BUFLEN_MASTER_2_SLAVE sizeof(CentauroUDP::packet::master2slave) 
 #define BUFLEN_SLAVE_2_MASTER sizeof(CentauroUDP::packet::slave2master)
@@ -134,7 +135,7 @@ int main(void)
         {
             die("sendto()");
         }
-        usleep(10000);
+        usleep(10000); // 10 ms
     }
  
     close(s);
