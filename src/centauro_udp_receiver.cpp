@@ -135,7 +135,7 @@ int main(void)
         {
             die("sendto()");
         }
-        usleep(10000); // 10 ms
+        usleep(1000); // 1 ms
     }
  
     close(s);
