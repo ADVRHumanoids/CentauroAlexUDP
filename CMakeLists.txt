@@ -29,6 +29,7 @@ endif()
 
 set(COMPILE_SENDER CACHE BOOL "OFF")
 set(COMPILE_RECEIVER CACHE BOOL "OFF")
+set(COMPILE_ROS_COMMUNICATION CACHE BOOL "OFF")
 
 # include 
 include_directories(include) 
@@ -144,4 +145,61 @@ IF(${COMPILE_RECEIVER})
                                         NO_CHECK_REQUIRED_COMPONENTS_MACRO)                                       
 
 ENDIF(${COMPILE_RECEIVER})
+
+########################################################################
+
+IF( ${COMPILE_ROS_COMMUNICATION} )
+
+    find_package(catkin REQUIRED COMPONENTS roscpp
+                                           geometry_msgs)
+                                           
+    include_directories(${catkin_INCLUDE_DIRS})                                                
+
+    add_executable(centauro_ros_autonomous_grasping
+        src/centauro_ros_autonomous_grasping.cpp
+    )
+    
+    target_link_libraries(centauro_ros_autonomous_grasping ${catkin_LIBRARIES})
+
+    set(VARS_PREFIX centauro_ros_autonomous_grasping)
+
+    set(centauro_ros_autonomous_grasping_MAJOR_VERSION 0)
+    set(centauro_ros_autonomous_grasping_MINOR_VERSION 0)
+    set(centauro_ros_autonomous_grasping_PATCH_VERSION 1)
+    set(centauro_ros_autonomous_grasping_VERSION ${centauro_ros_autonomous_grasping_MAJOR_VERSION}.${centauro_ros_autonomous_grasping_MINOR_VERSION}.${centauro_ros_autonomous_grasping_PATCH_VERSION})
+
+    find_package(YCM REQUIRED)
+    include(YCMDefaultDirs)
+    ycm_default_dirs(${VARS_PREFIX})
+
+    target_include_directories(centauro_ros_autonomous_grasping PUBLIC "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/src>"
+                                                    "$<INSTALL_INTERFACE:${${VARS_PREFIX}_INSTALL_INCLUDEDIR}>")
+
+    set_target_properties(centauro_ros_autonomous_grasping PROPERTIES VERSION ${${VARS_PREFIX}_VERSION}
+                                                SOVERSION ${${VARS_PREFIX}_VERSION})
+
+    install(DIRECTORY include/
+            DESTINATION "${${VARS_PREFIX}_INSTALL_INCLUDEDIR}"
+            FILES_MATCHING PATTERN "*.h*")
+
+    install(TARGETS centauro_ros_autonomous_grasping
+            EXPORT centauro_ros_autonomous_grasping
+            ARCHIVE DESTINATION "${${VARS_PREFIX}_INSTALL_BINDIR}" COMPONENT lib
+            RUNTIME DESTINATION "${${VARS_PREFIX}_INSTALL_BINDIR}" COMPONENT bin
+            LIBRARY DESTINATION "${${VARS_PREFIX}_INSTALL_LIBDIR}" COMPONENT shlib)
+
+
+
+    #enabling it will add all the project  dependencies as dependencies for third eparty users
+    set_property(GLOBAL APPEND PROPERTY ${VARS_PREFIX}_TARGETS centauro_ros_autonomous_grasping)
+
+
+    include(InstallBasicPackageFiles)
+    install_basic_package_files(centauro_ros_autonomous_grasping VARS_PREFIX ${VARS_PREFIX}
+                                        VERSION ${${VARS_PREFIX}_VERSION}
+                                        COMPATIBILITY SameMajorVersion
+                                        TARGETS_PROPERTY ${VARS_PREFIX}_TARGETS
+                                        NO_CHECK_REQUIRED_COMPONENTS_MACRO)                                    
+
+ENDIF(${COMPILE_ROS_COMMUNICATION})
 
