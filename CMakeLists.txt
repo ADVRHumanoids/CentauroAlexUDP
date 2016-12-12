@@ -151,7 +151,9 @@ ENDIF(${COMPILE_RECEIVER})
 IF( ${COMPILE_ROS_COMMUNICATION} )
 
     find_package(catkin REQUIRED COMPONENTS roscpp
-                                           geometry_msgs)
+                                           geometry_msgs
+                                           eigen_conversions
+                                           tf_conversions)
                                            
     include_directories(${catkin_INCLUDE_DIRS})                                                
 
