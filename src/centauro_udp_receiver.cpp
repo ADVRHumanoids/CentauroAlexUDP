@@ -8,6 +8,10 @@
 #include<sys/socket.h>
 #include <unistd.h>
 
+#include <sched.h>
+
+#include <iit/ecat/utils.h>
+
 #include <CentauroUDP/pipes.h>
 
 #include <CentauroUDP/packet/master2slave.h>
@@ -29,6 +33,8 @@ void die(char *s)
  
 int main(void)
 {
+    // set the CPU id
+    
     // UDP related stuffs
     struct sockaddr_in si_me, si_other, si_recv;
     int s, s_send, i , recv_len;
@@ -106,21 +112,21 @@ int main(void)
         }
         
         
-        printf("timer %f \n", pkt->timer_master);
+        printf("timer master: %f - timer slave: %f \n", pkt->timer_master, (iit::ecat::get_time_ns() / 10e8));
         
         // printf test
-//         printf("l_handle_trigger: %f\n" , pkt->l_handle_trigger);
-        printf("l_position_x: %f\n" , pkt->l_position_x);
-        printf("l_position_y: %f\n" , pkt->l_position_y);
-        printf("l_position_z: %f\n" , pkt->l_position_z);
+        printf("l_handle_trigger: %f\n" , pkt->l_handle_trigger);
+//         printf("l_position_x: %f\n" , pkt->l_position_x);
+//         printf("l_position_y: %f\n" , pkt->l_position_y);
+//         printf("l_position_z: %f\n" , pkt->l_position_z);
 //         printf("l_velocity_x: %f\n" , pkt->l_velocity_x);
 //         printf("l_velocity_y: %f\n" , pkt->l_velocity_y);
 //         printf("l_velocity_z: %f\n" , pkt->l_velocity_z);
 //         
 //         printf("r_handle_trigger: %f\n" , pkt->r_handle_trigger);
-        printf("r_position_x: %f\n" , pkt->r_position_x);
-        printf("r_position_y: %f\n" , pkt->r_position_y);
-        printf("r_position_z: %f\n" , pkt->r_position_z);
+//         printf("r_position_x: %f\n" , pkt->r_position_x);
+//         printf("r_position_y: %f\n" , pkt->r_position_y);
+//         printf("r_position_z: %f\n" , pkt->r_position_z);
 //         printf("r_velocity_x: %f\n" , pkt->r_velocity_x);
 //         printf("r_velocity_y: %f\n" , pkt->r_velocity_y);
 //         printf("r_velocity_z: %f\n" , pkt->r_velocity_z);
@@ -130,6 +136,10 @@ int main(void)
         
         // read from robot pipe
         bytes = read(robot_fd, (void *)pkt_to_send, BUFLEN_SLAVE_2_MASTER);
+        
+        printf("force sent: %f %f %f \n" , pkt_to_send->l_force_x, pkt_to_send->l_force_y, pkt_to_send->l_force_z);
+        // put back the master timer
+        pkt_to_send->timer_slave = pkt->timer_master;
         //send the message
         if (sendto(s_send, pkt_to_send, BUFLEN_SLAVE_2_MASTER , 0 , (struct sockaddr *) &si_other, slen)==-1)
         {
