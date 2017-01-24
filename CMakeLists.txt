@@ -153,7 +153,7 @@ IF( ${COMPILE_ROS_COMMUNICATION} )
     find_package(catkin REQUIRED COMPONENTS roscpp
                                            geometry_msgs
                                            eigen_conversions
-                                           tf_conversions)
+                                           tf2_ros)
                                            
     include_directories(${catkin_INCLUDE_DIRS})                                                
 
