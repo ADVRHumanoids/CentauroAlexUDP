@@ -55,7 +55,7 @@ int main(int argc, char** argv)
             int bytes = write(optitrack_fd, (void *)(&pose), sizeof(pose));
         }
         catch(tf2::TransformException e){
-            std::cout << "dio porchissimo" << e.what() << std::endl;
+            std::cout << "Exception: " << e.what() << std::endl;
         }
 
         loop_rate.sleep();
