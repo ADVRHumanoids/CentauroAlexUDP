@@ -161,6 +161,15 @@ IF( ${COMPILE_ROS_COMMUNICATION} )
         src/centauro_ros_autonomous_grasping.cpp
     )
     
+    
+    # set Xenomain flags if Xenomai is founded
+    if ( Xenomai_FOUND )
+        # exe
+        set_xeno_flags(centauro_ros_autonomous_grasping)
+    else ()
+        # exe
+    endif()
+    
     target_link_libraries(centauro_ros_autonomous_grasping ${catkin_LIBRARIES})
 
     set(VARS_PREFIX centauro_ros_autonomous_grasping)

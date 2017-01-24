@@ -16,11 +16,10 @@ int main(int argc, char** argv)
     ros::init(argc, argv, "optitrack_to_xddp");
     ros::NodeHandle nh;
 
-    int optitrack_fd = open((pipe_prefix+std::string("optitrack_pipe2")).c_str(), O_WRONLY | O_CREAT, 0777);
+    int optitrack_fd = open((pipe_prefix+std::string("optitrack_pipe2")).c_str(), O_WRONLY);
 
     std::cout << "optitrack_fd: " << optitrack_fd << " - Errno: " << errno << std::endl;
     perror("open");
-    std::cout << (pipe_prefix+std::string("optitrack_pipe")).c_str() << std::endl;
 
 
     Eigen::Affine3d ee_pose;
@@ -48,9 +47,8 @@ int main(int argc, char** argv)
 
 
             tf::transformMsgToEigen(transform.transform, pose);
-            pose.linear()(0,0) = transform.header.stamp.toSec();
 
-            std::cout << "Ref from optitrack : " << pose.translation().transpose() << " " << transform.header.stamp.toSec() << std::endl;
+            std::cout << "Ref from optitrack : " << pose.translation().transpose() << " --> " << transform.header.stamp.toNSec() << std::endl;
 
             int bytes = write(optitrack_fd, (void *)(&pose), sizeof(pose));
         }
