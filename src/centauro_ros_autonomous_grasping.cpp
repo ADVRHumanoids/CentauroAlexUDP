@@ -5,34 +5,35 @@
 #include <CentauroUDP/pipes.h>
 
 
-void callback ( geometry_msgs::TransformStamped::ConstPtr msg, CentauroUDP::XDDP_pipe& pipe){
-    
+void callback ( geometry_msgs::TransformStamped::ConstPtr msg, int fd){
+
     Eigen::Affine3d pose;
-    
+
     tf::transformMsgToEigen(msg->transform, pose);
-    
-    pipe.xddp_write(pose);
-    
-    
+
+    int bytes = write(fd, (void *)(&pose), sizeof(Eigen::Affine3d));
+
+
+
+
 }
 
 int main(int argc, char** argv)
 {
-    ros::init(argc, argv, "centauro_ros_autonomous_grasping_subscriber");
+    ros::init(argc, argv, "optitrack_to_xddp");
     ros::NodeHandle nh;
-    
-    CentauroUDP::XDDP_pipe ros_autonomous_grasping_pipe;
-    ros_autonomous_grasping_pipe.init("ros_autonomous_grasping_pipe");
-    
-    
+
+    int optitrack_fd = open((pipe_prefix+std::string("optitrack_pipe")).c_str(), O_WRONLY);
+
+
     Eigen::Affine3d ee_pose;
     ee_pose.setIdentity();
-    
-    ros::Subscriber sub = nh.subscribe<geometry_msgs::TransformStamped>("/centauro_upperbody/ee_pose", 
+
+    ros::Subscriber sub = nh.subscribe<geometry_msgs::TransformStamped>("Operator/TransformedRee",
                                                                         1,
-                                                                        boost::bind(callback, _1, ros_autonomous_grasping_pipe)
+                                                                        boost::bind(callback, _1, optitrack_fd)
                                                                        );
     ros::spin();
-    
+
     return 0;
 }
