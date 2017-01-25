@@ -15,11 +15,18 @@ int main(int argc, char** argv)
 
     ros::init(argc, argv, "optitrack_to_xddp");
     ros::NodeHandle nh;
-
-    int optitrack_fd = open((pipe_prefix+std::string("optitrack_pipe2")).c_str(), O_WRONLY);
-
-    std::cout << "optitrack_fd: " << optitrack_fd << " - Errno: " << errno << std::endl;
-    perror("open");
+    int optitrack_fd;
+    bool open_ok = false;
+    
+    while( !open_ok ) {
+        optitrack_fd = open((pipe_prefix+std::string("optitrack_pipe")).c_str(), O_WRONLY);
+        std::cout << "waiting for XDDP pipes to be initialized by the RT plugin..."<< std::endl;
+        if(optitrack_fd > 0) open_ok = true;
+        
+        sleep(1);
+    }
+    std::cout << "optitrack_fd: " << optitrack_fd << std::endl;
+    
 
 
     Eigen::Affine3d ee_pose;
