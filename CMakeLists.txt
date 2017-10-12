@@ -7,6 +7,7 @@ project(CentauroAlexUDP)
 # Add cmake dir and include custom macros
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 include(MacroOptionalBuild)
+include(MacroYCMInstallLibrary)
 
 # C++11 
 include(CheckCXXCompilerFlag)
@@ -27,19 +28,36 @@ if ( ${ENABLE_XENO} )
    find_package(RTnet)
 endif()
 
+# find packages
+find_package(XCM REQUIRED)
+
 # include 
-include_directories(include) 
+include_directories(include ${XCM_INCLUDE_DIRS}) 
+
+# plugin
+add_library(ExoskeletonCommunicationPlugin SHARED src/ExoskeletonCommunicationPlugin.cpp)
+
+# link
+target_link_libraries(ExoskeletonCommunicationPlugin ${XCM_LIBRARIES})
 
 # exe
 add_executable(${PROJECT_NAME}
                src/CentauroAlexUDP.cpp)
+               
+add_executable(CentauroPedalUDP
+               src/CentauroPedalUDP.cpp)               
 
 
 # set Xenomai flags if Xenomai is found
 if ( Xenomai_FOUND )
     set_xeno_flags(${PROJECT_NAME})
+    set_xeno_flags(ExoskeletonCommunicationPlugin)
 endif()
 
+# install
+
+ycm_library_install(ExoskeletonCommunicationPlugin 1 1 0)
 
 ycm_library_install(${PROJECT_NAME} 2 0 0)
 
+ycm_library_install(CentauroPedalUDP 1 0 0)
