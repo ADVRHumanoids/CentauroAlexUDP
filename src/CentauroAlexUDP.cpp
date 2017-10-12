@@ -1,6 +1,3 @@
-/*
-    Simple udp slave
-*/
 #include<stdio.h> //printf
 #include<string.h> //memset
 #include<stdlib.h> //exit(0);
@@ -12,18 +9,15 @@
 
 #include <iit/ecat/utils.h>
 
-#include <CentauroUDP/pipes.h>
-
 #include <CentauroUDP/packet/master2slave.h>
 #include <CentauroUDP/packet/slave2master.h>
 
-// #define SENDER "192.168.0.215"
-#define SENDER "192.168.0.10"
-#define RECEIVER "192.168.0.2"
+#define SENDER "10.24.4.10"
+#define RECEIVER "10.24.4.77"
 #define BUFLEN_MASTER_2_SLAVE sizeof(CentauroUDP::packet::master2slave) 
 #define BUFLEN_SLAVE_2_MASTER sizeof(CentauroUDP::packet::slave2master)
-#define PORT_MASTER_2_SLAVE 16000   //The port on which to listen for incoming data
-#define PORT_SLAVE_2_MASTER 16001   //The port on which to listen for incoming data
+#define PORT_MASTER_2_SLAVE 16006   
+#define PORT_SLAVE_2_MASTER 16106   
 
 void die(char *s)
 {
@@ -112,24 +106,24 @@ int main(void)
         }
         
         
-        printf("timer master: %f - timer slave: %f \n", pkt->timer_master, (iit::ecat::get_time_ns() / 10e8));
+        printf("timer master: %f - timer slave: %f \n", pkt->timer_master, (iit::ecat::get_time_ns() / 10e9));
         
         // printf test
         printf("l_handle_trigger: %f\n" , pkt->l_handle_trigger);
-//         printf("l_position_x: %f\n" , pkt->l_position_x);
-//         printf("l_position_y: %f\n" , pkt->l_position_y);
-//         printf("l_position_z: %f\n" , pkt->l_position_z);
-//         printf("l_velocity_x: %f\n" , pkt->l_velocity_x);
-//         printf("l_velocity_y: %f\n" , pkt->l_velocity_y);
-//         printf("l_velocity_z: %f\n" , pkt->l_velocity_z);
-//         
-//         printf("r_handle_trigger: %f\n" , pkt->r_handle_trigger);
-//         printf("r_position_x: %f\n" , pkt->r_position_x);
-//         printf("r_position_y: %f\n" , pkt->r_position_y);
-//         printf("r_position_z: %f\n" , pkt->r_position_z);
-//         printf("r_velocity_x: %f\n" , pkt->r_velocity_x);
-//         printf("r_velocity_y: %f\n" , pkt->r_velocity_y);
-//         printf("r_velocity_z: %f\n" , pkt->r_velocity_z);
+        printf("l_position_x: %f\n" , pkt->l_position_x);
+        printf("l_position_y: %f\n" , pkt->l_position_y);
+        printf("l_position_z: %f\n" , pkt->l_position_z);
+        printf("l_velocity_x: %f\n" , pkt->l_velocity_x);
+        printf("l_velocity_y: %f\n" , pkt->l_velocity_y);
+        printf("l_velocity_z: %f\n" , pkt->l_velocity_z);
+        
+        printf("r_handle_trigger: %f\n" , pkt->r_handle_trigger);
+        printf("r_position_x: %f\n" , pkt->r_position_x);
+        printf("r_position_y: %f\n" , pkt->r_position_y);
+        printf("r_position_z: %f\n" , pkt->r_position_z);
+        printf("r_velocity_x: %f\n" , pkt->r_velocity_x);
+        printf("r_velocity_y: %f\n" , pkt->r_velocity_y);
+        printf("r_velocity_z: %f\n" , pkt->r_velocity_z);
         
         // write on exoskeleton_pipe
         int bytes = write(exoskeleton_fd, (void *)pkt, BUFLEN_MASTER_2_SLAVE);
