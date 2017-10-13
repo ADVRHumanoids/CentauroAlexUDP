@@ -14,7 +14,7 @@
 #include <CentauroAlexUDP/packet/slave2master.h>
 
 #define SENDER "10.24.4.10"
-#define RECEIVER "10.24.4.77"
+#define RECEIVER "10.24.4.100"
 #define BUFLEN_MASTER_2_SLAVE sizeof(CentauroUDP::packet::master2slave) 
 #define BUFLEN_SLAVE_2_MASTER sizeof(CentauroUDP::packet::slave2master)
 #define PORT_MASTER_2_SLAVE 16006   

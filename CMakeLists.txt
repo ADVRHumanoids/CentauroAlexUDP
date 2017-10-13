@@ -36,10 +36,10 @@ find_package(catkin REQUIRED COMPONENTS geometry_msgs roscpp)
 include_directories(include ${XCM_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS}) 
 
 # plugin
-add_library(ExoskeletonCommunicationPlugin SHARED src/ExoskeletonCommunicationPlugin.cpp)
+add_library(AlexCommunication SHARED src/ExoskeletonCommunicationPlugin.cpp)
 
 # link
-target_link_libraries(ExoskeletonCommunicationPlugin ${XCM_LIBRARIES})
+target_link_libraries(AlexCommunication ${XCM_LIBRARIES})
 
 # exe
 add_executable(${PROJECT_NAME}
@@ -55,12 +55,12 @@ target_link_libraries(CentauroPedalUDP ${catkin_LIBRARIES})
 # set Xenomai flags if Xenomai is found
 if ( Xenomai_FOUND )
     set_xeno_flags(${PROJECT_NAME})
-    set_xeno_flags(ExoskeletonCommunicationPlugin)
+    set_xeno_flags(AlexCommunication)
 endif()
 
 # install
 
-ycm_library_install(ExoskeletonCommunicationPlugin 1 1 0)
+ycm_library_install(AlexCommunication 1 1 0)
 
 ycm_library_install(${PROJECT_NAME} 2 0 0)
 

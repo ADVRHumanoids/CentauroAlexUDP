@@ -27,7 +27,7 @@
     #define DPRINTF printf
 #endif
 
-SHLIBPP_DEFINE_SHARED_SUBCLASS(ExoskeletonCommunicationPlugin_factory, demo::ExoskeletonCommunicationPlugin, XBot::XBotControlPlugin);
+REGISTER_XBOT_PLUGIN(AlexCommunication, demo::ExoskeletonCommunicationPlugin);
 
 namespace demo {
  
@@ -47,8 +47,8 @@ bool ExoskeletonCommunicationPlugin::init_control_plugin(std::string path_to_con
     _left_ee_offset.setIdentity();
     _right_ee_offset.setIdentity();
     
-    _left_ee_offset.translation()  << -0.144119, 0.142902, -0.063278;
-    _right_ee_offset.translation() << -0.144119, -0.142902, -0.063278;
+    _left_ee_offset.translation()  << -0.04, 0.142902, -0.063278; // -0.1441119
+    _right_ee_offset.translation() << -0.04, -0.142902, -0.063278;
     
     _left_ee_offset.linear()(0,0) = 1.340974;
     _left_ee_offset.linear()(1,1) = 0.995771;
@@ -151,10 +151,10 @@ void ExoskeletonCommunicationPlugin::control_loop(double time, double period)
     // sense to update the FT values
     _robot->sense();
     // get FT values
-    const XBot::ForceTorqueSensor& ft = *_robot->getForceTorque().at("ft_arm1");
+    //const XBot::ForceTorqueSensor& ft = *_robot->getForceTorque().at("ft_arm1");
     // transform it
     Eigen::Vector3d f;
-    ft.getForce(f);
+    //ft.getForce(f);
     
 //     DPRINTF("RAW f: %f %f %f", f(0), f(1), f(2));
     

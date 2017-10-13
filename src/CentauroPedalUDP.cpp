@@ -7,6 +7,8 @@
 
 #include <sched.h>
 
+#include <vector>
+
 #include <XBotCore-interfaces/XBotPipes.h>
 #include <XCM/XBotUtils.h>
 
