@@ -97,7 +97,7 @@ int main(void)
     //keep listening for data
     while(1)
     {
-        printf("Waiting for data...");
+        printf("Waiting for data...\n");
         fflush(stdout);
          
         //try to receive some data, this is a blocking call
@@ -111,9 +111,9 @@ int main(void)
 //         
 //         // printf test
 //         printf("l_handle_trigger: %f\n" , pkt->l_handle_trigger);
-//         printf("l_position_x: %f\n" , pkt->l_position_x);
-//         printf("l_position_y: %f\n" , pkt->l_position_y);
-//         printf("l_position_z: %f\n" , pkt->l_position_z);
+        printf("l_position_x: %f\n" , pkt->l_position_x);
+        printf("l_position_y: %f\n" , pkt->l_position_y);
+        printf("l_position_z: %f\n" , pkt->l_position_z);
 //         printf("l_velocity_x: %f\n" , pkt->l_velocity_x);
 //         printf("l_velocity_y: %f\n" , pkt->l_velocity_y);
 //         printf("l_velocity_z: %f\n" , pkt->l_velocity_z);

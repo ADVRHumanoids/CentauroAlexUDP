@@ -30,9 +30,10 @@ endif()
 
 # find packages
 find_package(XCM REQUIRED)
+find_package(catkin REQUIRED COMPONENTS geometry_msgs roscpp)
 
 # include 
-include_directories(include ${XCM_INCLUDE_DIRS}) 
+include_directories(include ${XCM_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS}) 
 
 # plugin
 add_library(ExoskeletonCommunicationPlugin SHARED src/ExoskeletonCommunicationPlugin.cpp)
@@ -45,7 +46,10 @@ add_executable(${PROJECT_NAME}
                src/CentauroAlexUDP.cpp)
                
 add_executable(CentauroPedalUDP
-               src/CentauroPedalUDP.cpp)               
+               src/CentauroPedalUDP.cpp)    
+               
+target_link_libraries(CentauroPedalUDP ${catkin_LIBRARIES})
+
 
 
 # set Xenomai flags if Xenomai is found

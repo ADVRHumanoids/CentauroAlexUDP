@@ -32,8 +32,8 @@ namespace CentauroUDP {
     namespace packet {
         struct pedal2slave{
             int x;
-            int y;
             int teta;
+            int y;
         };
     }   
 }

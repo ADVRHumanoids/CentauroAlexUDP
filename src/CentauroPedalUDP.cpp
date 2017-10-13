@@ -13,6 +13,9 @@
 #include <CentauroAlexUDP/packet/pedal2slave.h>
 #include <CentauroAlexUDP/packet/slave2pedal.h>
 
+#include <ros/ros.h>
+#include <geometry_msgs/TwistStamped.h>
+
 #define SENDER "10.24.4.40"
 #define RECEIVER "10.24.4.77"
 #define BUFLEN_PEDAL_2_SLAVE sizeof(CentauroUDP::packet::pedal2slave) 
@@ -20,15 +23,23 @@
 #define PORT_PEDAL_2_SLAVE 15006   
 #define PORT_SLAVE_2_PEDAL 15106   
 
+#define FULL_SCALE 100
+
 void die(char *s)
 {
     perror(s);
     exit(1);
 }
  
-int main(void)
+int main(int argc, char** argv)
 {
-    // set the CPU id
+    ros::init(argc, argv, "centauro_pedal_udp");
+    ros::NodeHandle nh;
+    
+    ros::Publisher pub = nh.advertise<geometry_msgs::Twist>("/centauro_wheeled_locomotion/vref", 1, false);
+    
+    const double v_max = 0.3;
+    const double omega_max = 1.0;
     
     // UDP related stuffs
     struct sockaddr_in si_me, si_other, si_recv;
@@ -91,15 +102,17 @@ int main(void)
         }
         
         
-        printf("x: %d \ny: %d \nteta: %d", pkt->x, pkt->y, pkt->teta);
-
+        printf("\nx: %d \ny: %d \nteta: %d\n", pkt->x, pkt->y, pkt->teta);
+        geometry_msgs::Twist msg;
+        msg.linear.x = pkt->x * v_max / FULL_SCALE;
+        msg.linear.y = pkt->y * v_max / FULL_SCALE;
+        msg.angular.z = pkt->teta * omega_max / FULL_SCALE;
         
-// // //         // write on exoskeleton_pipe
-// // //         int bytes = write(exoskeleton_fd, (void *)pkt, BUFLEN_MASTER_2_SLAVE);
-// // //         
-// // //         // read from robot pipe
-// // //         bytes = read(robot_fd, (void *)pkt_to_send, BUFLEN_SLAVE_2_MASTER);
-
+        
+        // HACK 
+        
+        
+        pub.publish(msg);
         
         //send the message
         if (sendto(s_send, pkt_to_send, BUFLEN_SLAVE_2_PEDAL , 0 , (struct sockaddr *) &si_other, slen)==-1)
