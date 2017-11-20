@@ -27,21 +27,24 @@
     #define DPRINTF printf
 #endif
 
-SHLIBPP_DEFINE_SHARED_SUBCLASS(ExoskeletonCommunicationPlugin_factory, demo::ExoskeletonCommunicationPlugin, XBot::XBotControlPlugin);
+// SHLIBPP_DEFINE_SHARED_SUBCLASS(ExoskeletonCommunicationPlugin_factory, demo::ExoskeletonCommunicationPlugin, XBot::XBotControlPlugin);
+
+REGISTER_XBOT_PLUGIN(AlexCommunication, demo::ExoskeletonCommunicationPlugin)
+
 
 namespace demo {
  
-bool ExoskeletonCommunicationPlugin::init_control_plugin(std::string path_to_config_file, 
-                                                         XBot::SharedMemory::Ptr shared_memory, 
-                                                         XBot::RobotInterface::Ptr robot)
+bool ExoskeletonCommunicationPlugin::init_control_plugin(XBot::Handle::Ptr handle)
 {
-    std::cout << "Initializing ExoskeletonCommunicationPlugin..." << std::endl;
     // exoskeleton pipe
     _exoskeleton_pipe.init("exoskeleton_pipe");
     // robot pipe
     _robot_pipe.init("robot_pipe");
     // init pkt
     initPacket();
+    
+    // get robot    
+    _robot = handle->getRobotInterface();
     
     // Set offsets
     _left_ee_offset.setIdentity();
@@ -60,28 +63,27 @@ bool ExoskeletonCommunicationPlugin::init_control_plugin(std::string path_to_con
     
     
     // Advertise shared objects
-    _T_left_ee = shared_memory->advertise<Eigen::Affine3d>("w_T_left_ee");
-    _T_right_ee = shared_memory->advertise<Eigen::Affine3d>("w_T_right_ee");
-    _T_left_elb = shared_memory->advertise<Eigen::Affine3d>("w_T_left_elb");
-    _T_right_elb = shared_memory->advertise<Eigen::Affine3d>("w_T_right_elb");
+    _T_left_ee = handle->getSharedMemory()->getSharedObject<Eigen::Affine3d>("w_T_left_ee");
+    _T_right_ee = handle->getSharedMemory()->getSharedObject<Eigen::Affine3d>("w_T_right_ee");
+    _T_left_elb = handle->getSharedMemory()->getSharedObject<Eigen::Affine3d>("w_T_left_elb");
+    _T_right_elb = handle->getSharedMemory()->getSharedObject<Eigen::Affine3d>("w_T_right_elb");
     
-    // Allocate shared objects
-    _T_left_ee.reset(new Eigen::Affine3d);
-    _T_right_ee.reset(new Eigen::Affine3d);
-    _T_left_elb.reset(new Eigen::Affine3d);
-    _T_right_elb.reset(new Eigen::Affine3d);
-    
-    _T_left_ee->setIdentity();
-    _T_right_ee->setIdentity();
-    _T_left_elb->setIdentity();
-    _T_right_elb->setIdentity();
+    _T_left_ee.set(Eigen::Affine3d::Identity());
+    _T_right_ee.set(Eigen::Affine3d::Identity());
+    _T_left_elb.set(Eigen::Affine3d::Identity());
+    _T_right_elb.set(Eigen::Affine3d::Identity());
     
     _cutoff_freq = 20;
     _sampling_time = 0.001;
     
-    robot->sense();
-    robot->model().getPose(robot->chain("left_arm").getTipLinkName(), robot->chain("torso").getTipLinkName(), *_T_left_ee);
-    robot->model().getPose(robot->chain("right_arm").getTipLinkName(), robot->chain("torso").getTipLinkName(), *_T_right_ee);
+    _robot->sense();
+
+    _robot->model().getPose(_robot->chain("left_arm").getTipLinkName(), _robot->chain("torso").getTipLinkName(), _aux);
+    _T_left_ee.set(_aux);
+    
+    _robot->model().getPose(_robot->chain("right_arm").getTipLinkName(), _robot->chain("torso").getTipLinkName(), _aux);
+    _T_right_ee.set(_aux);
+    
     
     // Hard coded offsets...
     KDL::Rotation left_orientation_offset_kdl, right_orientation_offset_kdl;
@@ -96,26 +98,29 @@ bool ExoskeletonCommunicationPlugin::init_control_plugin(std::string path_to_con
 //     rotationKDLToEigen(left_orientation_offset_kdl, left_orientation_offset);
 //     rotationKDLToEigen(right_orientation_offset_kdl, right_orientation_offset);
     
-    _T_left_ee->linear() <<  0,  0, -1,
-                             1,  0,  0,
-                             0, -1,  0;
+    
+    _aux.translation() = _T_right_ee.get().translation();
+    
+    _aux.linear() <<   0,  0, -1,
+                      1,  0,  0,
+                      0, -1,  0;
+                      
+    _T_right_ee.set(_aux);
+                      
                              
-    
+    _aux.translation() = _T_left_ee.get().translation();
                              
-    _T_right_ee->linear() <<  0,  0, -1,
-                             -1,  0,  0,
-                              0,  1,  0;
-                              
-     _T_left_ee->linear() = _T_left_ee->linear();
-     _T_right_ee->linear() = _T_right_ee->linear();
+    _aux.linear() <<  0,  0, -1,
+                    -1,  0,  0,
+                     0,  1,  0;
+
+    _T_left_ee.set(_aux);
+
                              
-    _position_left_ee = _position_left_ee_filtered = _position_left_ee_q = _T_left_ee->translation();
-    _position_right_ee = _position_right_ee_filtered = _position_right_ee_q = _T_right_ee->translation();
-    
-    _robot = robot;
-    
-    std::cout << "Initialized ExoskeletonCommunicationPlugin..." << std::endl;
-    
+    _position_left_ee = _position_left_ee_filtered = _position_left_ee_q = _T_left_ee.get().translation();
+    _position_right_ee = _position_right_ee_filtered = _position_right_ee_q = _T_right_ee.get().translation();
+
+        
     return true;
 }
 
@@ -141,20 +146,25 @@ void ExoskeletonCommunicationPlugin::control_loop(double time, double period)
 // //     _position_right_ee_filtered = b0*_position_right_ee + a1*_position_right_ee_q;
     
     // Write to shared memory
-    _T_left_ee->translation()  = _left_ee_offset.linear()*_T_left_ee->translation() + _left_ee_offset.translation();
-    _T_right_ee->translation() = _right_ee_offset.linear()*_T_right_ee->translation() + _right_ee_offset.translation();
+    _aux = _T_left_ee.get();
+    _aux.translation() = _left_ee_offset.linear() * _aux.translation() + _left_ee_offset.translation();
+    _T_left_ee.set(_aux);
     
-//     _T_left_ee->translation() += Eigen::Vector3d(0,0,1) * 0.3 * std::sin(time - get_first_loop_time());
-//     _T_right_ee->translation() += Eigen::Vector3d(0,0,1) * 0.3 * std::sin(time - get_first_loop_time());
-    
+    _aux = _T_right_ee.get();
+    _aux.translation() = _right_ee_offset.linear() * _aux.translation() + _right_ee_offset.translation();
+    _T_right_ee.set(_aux);
+
     
     // sense to update the FT values
     _robot->sense();
     // get FT values
-    const XBot::ForceTorqueSensor& ft = *_robot->getForceTorque().at("ft_arm1");
+    XBot::ForceTorqueSensor::ConstPtr ft;
+    if(_robot->getForceTorque().count("ft_arm1")) {
+        ft = _robot->getForceTorque().at("ft_arm1");
+    }
     // transform it
     Eigen::Vector3d f;
-    ft.getForce(f);
+    ft->getForce(f);
     
 //     DPRINTF("RAW f: %f %f %f", f(0), f(1), f(2));
     
@@ -176,19 +186,26 @@ bool ExoskeletonCommunicationPlugin::close()
 
 void demo::ExoskeletonCommunicationPlugin::updateReferences()
 {
+    
+    _aux = _T_left_ee.get();
 
-    _T_left_ee->translation().x() = _exoskeleton_pipe_packet.l_position_x;
-    _T_left_ee->translation().y() = _exoskeleton_pipe_packet.l_position_y;
-    _T_left_ee->translation().z() = _exoskeleton_pipe_packet.l_position_z;
-    _T_left_ee->linear() = Eigen::Map<Eigen::Matrix3f>(&_exoskeleton_pipe_packet.l_rotation[0]).cast<double>();
+    _aux.translation().x() = _exoskeleton_pipe_packet.l_position_x;
+    _aux.translation().y() = _exoskeleton_pipe_packet.l_position_y;
+    _aux.translation().z() = _exoskeleton_pipe_packet.l_position_z;
+    _aux.linear() = Eigen::Map<Eigen::Matrix3f>(&_exoskeleton_pipe_packet.l_rotation[0]).cast<double>();
     
- 
-    _T_right_ee->translation().x() = _exoskeleton_pipe_packet.r_position_x;
-    _T_right_ee->translation().y() = _exoskeleton_pipe_packet.r_position_y;
-    _T_right_ee->translation().z() = _exoskeleton_pipe_packet.r_position_z;
-    _T_right_ee->linear() = Eigen::Map<Eigen::Matrix3f>(&_exoskeleton_pipe_packet.r_rotation[0]).cast<double>();
+    _T_left_ee.set(_aux);
     
-//     std::cout << _T_right_ee->matrix() << std::endl;
+    
+    _aux = _T_right_ee.get();
+    
+    _aux.translation().x() = _exoskeleton_pipe_packet.r_position_x;
+    _aux.translation().y() = _exoskeleton_pipe_packet.r_position_y;
+    _aux.translation().z() = _exoskeleton_pipe_packet.r_position_z;
+    _aux.linear() = Eigen::Map<Eigen::Matrix3f>(&_exoskeleton_pipe_packet.r_rotation[0]).cast<double>();
+    
+    _T_right_ee.set(_aux);
+    
     
     
 }

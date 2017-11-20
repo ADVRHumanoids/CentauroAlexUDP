@@ -1,4 +1,4 @@
-#include<stdio.h> //printf
+#include<stdio.h> //Logger::info
 #include<string.h> //memset
 #include<stdlib.h> //exit(0);
 #include<arpa/inet.h>
@@ -9,6 +9,8 @@
 
 #include <XBotCore-interfaces/XBotPipes.h>
 #include <XCM/XBotUtils.h>
+
+#include <XBotCore-interfaces/XDomainCommunication.h>
 
 #include <CentauroAlexUDP/packet/master2slave.h>
 #include <CentauroAlexUDP/packet/slave2master.h>
@@ -41,21 +43,11 @@ int main(void)
     // slave to master packet
     struct CentauroUDP::packet::slave2master *pkt_to_send = (CentauroUDP::packet::slave2master *)malloc(BUFLEN_SLAVE_2_MASTER);
     
-    // exoskeleton pipe
-    int exoskeleton_fd = open((pipe_prefix+std::string("exoskeleton_pipe")).c_str(), O_WRONLY);
-    if( exoskeleton_fd < 0 ){
-        die("Open exoskeleton_fd");
-    }
-    printf("fd : %d\n", exoskeleton_fd);
-    fflush(stdout);
+    // exoskeleton pipe   
+    XBot::PublisherNRT<CentauroUDP::packet::master2slave> exoskeleton_pub("exoskeleton_pipe");
     
     // robot pipe
-    int robot_fd = open((pipe_prefix+std::string("robot_pipe")).c_str(), O_RDONLY);
-    if( robot_fd < 0 ){
-        die("Open robot_fd");
-    }
-    printf("fd : %d\n", robot_fd);
-    fflush(stdout);
+    XBot::SubscriberNRT<CentauroUDP::packet::slave2master> robot_sub("robot_pipe");
      
     //create a UDP socket
     if ((s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
@@ -89,7 +81,7 @@ int main(void)
     si_other.sin_port = htons(PORT_SLAVE_2_MASTER);
     if (inet_aton(SENDER , &si_other.sin_addr) == 0)
     {
-        fprintf(stderr, "inet_aton() failed\n");
+        Logger::error("inet_aton() failed\n");
         exit(1);
     }
         
@@ -97,7 +89,7 @@ int main(void)
     //keep listening for data
     while(1)
     {
-        printf("Waiting for data...\n");
+        Logger::info("Waiting for data...");
         fflush(stdout);
          
         //try to receive some data, this is a blocking call
@@ -107,32 +99,34 @@ int main(void)
         }
         
         
-//         printf("timer master: %f - timer slave: %f \n", pkt->timer_master, (XBot::get_time_ns() / 10e9));
+//         Logger::info("timer master: %f - timer slave: %f \n", pkt->timer_master, (XBot::get_time_ns() / 10e9));
 //         
-//         // printf test
-//         printf("l_handle_trigger: %f\n" , pkt->l_handle_trigger);
-        printf("l_position_x: %f\n" , pkt->l_position_x);
-        printf("l_position_y: %f\n" , pkt->l_position_y);
-        printf("l_position_z: %f\n" , pkt->l_position_z);
-//         printf("l_velocity_x: %f\n" , pkt->l_velocity_x);
-//         printf("l_velocity_y: %f\n" , pkt->l_velocity_y);
-//         printf("l_velocity_z: %f\n" , pkt->l_velocity_z);
+//         // Logger::info test
+        Logger::info("l_handle_trigger: %f" , pkt->l_handle_trigger);
+        Logger::info("l_position_x: %f" , pkt->l_position_x);
+        Logger::info("l_position_y: %f" , pkt->l_position_y);
+        Logger::info("l_position_z: %f" , pkt->l_position_z);
+//         Logger::info("l_velocity_x: %f\n" , pkt->l_velocity_x);
+//         Logger::info("l_velocity_y: %f\n" , pkt->l_velocity_y);
+//         Logger::info("l_velocity_z: %f\n" , pkt->l_velocity_z);
 //         
-//         printf("r_handle_trigger: %f\n" , pkt->r_handle_trigger);
-//         printf("r_position_x: %f\n" , pkt->r_position_x);
-//         printf("r_position_y: %f\n" , pkt->r_position_y);
-//         printf("r_position_z: %f\n" , pkt->r_position_z);
-//         printf("r_velocity_x: %f\n" , pkt->r_velocity_x);
-//         printf("r_velocity_y: %f\n" , pkt->r_velocity_y);
-//         printf("r_velocity_z: %f\n" , pkt->r_velocity_z);
+        Logger::info("r_handle_trigger: %f" , pkt->r_handle_trigger);
+        Logger::info("r_position_x: %f" , pkt->r_position_x);
+        Logger::info("r_position_y: %f" , pkt->r_position_y);
+        Logger::info("r_position_z: %f" , pkt->r_position_z);
+//         Logger::info("r_velocity_x: %f\n" , pkt->r_velocity_x);
+//         Logger::info("r_velocity_y: %f\n" , pkt->r_velocity_y);
+//         Logger::info("r_velocity_z: %f\n" , pkt->r_velocity_z);
         
         // write on exoskeleton_pipe
-        int bytes = write(exoskeleton_fd, (void *)pkt, BUFLEN_MASTER_2_SLAVE);
+        exoskeleton_pub.write(*pkt);
+//         int bytes = write(exoskeleton_fd, (void *)pkt, BUFLEN_MASTER_2_SLAVE);
         
         // read from robot pipe
-        bytes = read(robot_fd, (void *)pkt_to_send, BUFLEN_SLAVE_2_MASTER);
+        robot_sub.read(*pkt_to_send);
+//         bytes = read(robot_fd, (void *)pkt_to_send, BUFLEN_SLAVE_2_MASTER);
         
-        printf("force sent: %f %f %f \n" , pkt_to_send->l_force_x, pkt_to_send->l_force_y, pkt_to_send->l_force_z);
+        Logger::info("force sent: %f %f %f \n" , pkt_to_send->l_force_x, pkt_to_send->l_force_y, pkt_to_send->l_force_z);
         
         
         // put back the master timer
@@ -147,7 +141,6 @@ int main(void)
  
     close(s);
     close(s_send);
-    close(robot_fd);
-    close(exoskeleton_fd);
+
     return 0;
 }

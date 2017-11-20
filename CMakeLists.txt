@@ -48,6 +48,8 @@ add_executable(${PROJECT_NAME}
 add_executable(CentauroPedalUDP
                src/CentauroPedalUDP.cpp)    
                
+               
+target_link_libraries(${PROJECT_NAME} ${XCM_LIBRARIES})               
 target_link_libraries(CentauroPedalUDP ${catkin_LIBRARIES})
 
 

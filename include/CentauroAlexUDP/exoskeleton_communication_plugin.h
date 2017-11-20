@@ -33,9 +33,7 @@ namespace demo {
       
     public:
         
-        virtual bool init_control_plugin(std::string path_to_config_file, 
-                                         XBot::SharedMemory::Ptr shared_memory, 
-                                         XBot::RobotInterface::Ptr robot);
+        virtual bool init_control_plugin(XBot::Handle::Ptr handle);
         virtual void control_loop(double time, double period);
         virtual bool close();
             
@@ -51,6 +49,8 @@ namespace demo {
         
         void ft_transform_DEPRECATED( Eigen::Vector3d& f_to_transform );
         
+        Eigen::Affine3d _aux;
+    
         XBot::RobotInterface::Ptr _robot;
         
         double _cutoff_freq;
