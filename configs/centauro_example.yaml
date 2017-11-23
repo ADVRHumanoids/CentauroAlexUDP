@@ -17,8 +17,8 @@ MasterCommunicationInterface:
   framework_name: "ROS"
 
 XBotRTPlugins:
-  plugins: ["HomingExample", "OpenSotIk", "IkRosSMPub", "CirclePublisher", "AlexCommunication"]
-  io_plugins: ["IkRosIo"]
+  plugins: ["HomingExample", "OpenSotIk", "AlexCommunication"]
+  io_plugins: []
   
 NRTPlugins:
   plugins: []
