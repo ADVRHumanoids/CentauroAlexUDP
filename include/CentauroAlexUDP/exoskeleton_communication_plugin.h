@@ -27,6 +27,8 @@
 #include <CentauroAlexUDP/packet/master2slave.h>
 #include <CentauroAlexUDP/packet/slave2master.h>
 
+#include <XBotInterface/Utils.h>
+
 namespace demo {
 
     class ExoskeletonCommunicationPlugin : public XBot::XBotControlPlugin {
@@ -43,18 +45,28 @@ namespace demo {
         
         void updateReferences();
         void initPacket();
+
+        void resetFT();
         
         inline void rotationEigenToKDL(const Eigen::Matrix3d& eigen_rotation, KDL::Rotation& kdl_rotation) const;
         inline void rotationKDLToEigen(const KDL::Rotation& kdl_rotation, Eigen::Matrix3d& eigen_rotation) const;
         
-        void ft_transform_DEPRECATED( Eigen::Vector3d& f_to_transform );
+	Eigen::Vector6d getWorldWrench( XBot::ForceTorqueSensor::ConstPtr ft );
         
         Eigen::Affine3d _aux;
     
         XBot::RobotInterface::Ptr _robot;
+        XBot::MatLogger::Ptr _logger;
+
+	XBot::Hand::Ptr _left_hand;
         
         double _cutoff_freq;
         double _sampling_time;
+
+        int _reset_ft_count = 0;
+        bool _reset_ft = false;
+        XBot::Utils::SecondOrderFilter<Eigen::Vector6d> l_ft_filter, r_ft_filter;
+        Eigen::Vector6d _l_ft_offset, _r_ft_offset;
         
         Eigen::Vector3d _position_left_ee, _position_right_ee;
         Eigen::Vector3d _position_left_ee_filtered, _position_right_ee_filtered;
