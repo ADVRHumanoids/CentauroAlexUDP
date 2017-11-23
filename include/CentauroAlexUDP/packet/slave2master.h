@@ -33,14 +33,24 @@ namespace CentauroUDP {
         struct slave2master{
             float timer_slave;
             float status;
+            
             // 1 is right
             float r_force_x;
             float r_force_y;
             float r_force_z;
+            float r_torque_x;
+            float r_torque_y;
+            float r_torque_z;
             // 2 is right
             float l_force_x;
             float l_force_y;
             float l_force_z;
+            float l_torque_x;
+            float l_torque_y;
+            float l_torque_z;
+            
+            // l hand
+            float l_hand_status;
         };
     }   
 }
