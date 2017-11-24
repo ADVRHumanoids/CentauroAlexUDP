@@ -13,6 +13,7 @@
 #include <CentauroAlexUDP/packet/pedal2slave.h>
 #include <CentauroAlexUDP/packet/slave2pedal.h>
 
+#include <vector>
 #include <ros/ros.h>
 #include <geometry_msgs/TwistStamped.h>
 

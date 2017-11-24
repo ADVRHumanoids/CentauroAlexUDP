@@ -165,7 +165,7 @@ void ExoskeletonCommunicationPlugin::control_loop(double time, double period)
     // transform it
     Eigen::Vector6d w = getWorldWrench(ft) - _l_ft_offset;
 
-    Logger::info(Logger::Severity::HIGH, "TRANSFORMED Left f: %f %f %f", w(0), w(1), w(2));
+    //Logger::info(Logger::Severity::HIGH, "TRANSFORMED Left f: %f %f %f", w(0), w(1), w(2));
 
     // fill the robot pipe pkt
     _robot_pipe_packet.l_force_x = w(0);
@@ -201,7 +201,7 @@ void ExoskeletonCommunicationPlugin::control_loop(double time, double period)
     }
 
     if( _reset_ft ) {
-	resetFT();
+	    resetFT();
     }
 
     _logger->add("l_ft_offset", _l_ft_offset);
