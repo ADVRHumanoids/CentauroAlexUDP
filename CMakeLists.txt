@@ -25,7 +25,6 @@ endif()
 set(ENABLE_XENO CACHE BOOL "ON")
 if ( ${ENABLE_XENO} )
    find_package(Xenomai)
-   find_package(RTnet)
 endif()
 
 # find packages
