@@ -29,7 +29,7 @@ endif()
 
 # find packages
 find_package(XCM REQUIRED)
-find_package(catkin REQUIRED COMPONENTS geometry_msgs roscpp)
+find_package(catkin REQUIRED COMPONENTS geometry_msgs roscpp cartesian_interface)
 
 # include 
 include_directories(include ${XCM_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS}) 
@@ -38,7 +38,7 @@ include_directories(include ${XCM_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 add_library(AlexCommunication SHARED src/ExoskeletonCommunicationPlugin.cpp)
 
 # link
-target_link_libraries(AlexCommunication ${XCM_LIBRARIES})
+target_link_libraries(AlexCommunication ${XCM_LIBRARIES} ${catkin_LIBRARIES})
 
 # exe
 add_executable(${PROJECT_NAME}
@@ -48,7 +48,7 @@ add_executable(CentauroPedalUDP
                src/CentauroPedalUDP.cpp)    
                
                
-target_link_libraries(${PROJECT_NAME} ${XCM_LIBRARIES})               
+target_link_libraries(${PROJECT_NAME} ${XCM_LIBRARIES} ${catkin_LIBRARIES})               
 target_link_libraries(CentauroPedalUDP ${catkin_LIBRARIES})
 
 

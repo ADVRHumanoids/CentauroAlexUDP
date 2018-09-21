@@ -96,29 +96,37 @@ int main(void)
 
     int retry = 0;
 
+    
+
     //keep listening for data
     while(1)
     {
-        printf("Waiting for data...\n");
-        fflush(stdout);
+        //printf("Waiting for data...\n");
+        //fflush(stdout);
 
         //try to receive some data, this is a not blocking call - trying to empty the buffer
-        while ((recv_len = recvfrom(s, pkt, BUFLEN_MASTER_2_SLAVE, 0, (struct sockaddr *) &si_recv, &slen)) != -1)
+        
+        do
         {
+            recv_len = recvfrom(s, pkt, BUFLEN_MASTER_2_SLAVE, 0, (struct sockaddr *) &si_recv, &slen);
             retry++;
-            XBot::Logger::info("recv_len: %d - retry number: %d\n", recv_len, retry);
+            XBot::Logger::info("retry number: %d\n", retry);
         }
+        while (recv_len == -1 );
 
         retry = 0;
 
 
-//         XBot::Logger::info("timer master: %f - timer slave: %f \n", pkt->timer_master, (XBot::get_time_ns() / 10e9));
+        XBot::Logger::info("timer master: %f - timer slave: %f \n", pkt->timer_master, (XBot::get_time_ns() / 10e9));
+
+        XBot::Logger::info("run: %f \n", pkt->run);
 //
 //         // XBot::Logger::info test
         XBot::Logger::info("l_handle_trigger: %f\n" , pkt->l_handle_trigger);
         XBot::Logger::info("l_position_x: %f\n" , pkt->l_position_x);
         XBot::Logger::info("l_position_y: %f\n" , pkt->l_position_y);
         XBot::Logger::info("l_position_z: %f\n" , pkt->l_position_z);
+
 //         XBot::Logger::info("l_velocity_x: %f\n" , pkt->l_velocity_x);
 //         XBot::Logger::info("l_velocity_y: %f\n" , pkt->l_velocity_y);
 //         XBot::Logger::info("l_velocity_z: %f\n" , pkt->l_velocity_z);
@@ -127,17 +135,17 @@ int main(void)
         XBot::Logger::info("r_position_x: %f\n" , pkt->r_position_x);
         XBot::Logger::info("r_position_y: %f\n" , pkt->r_position_y);
         XBot::Logger::info("r_position_z: %f\n" , pkt->r_position_z);
+
 //         XBot::Logger::info("r_velocity_x: %f\n" , pkt->r_velocity_x);
 //         XBot::Logger::info("r_velocity_y: %f\n" , pkt->r_velocity_y);
 //         XBot::Logger::info("r_velocity_z: %f\n" , pkt->r_velocity_z);
 
         // write on exoskeleton_pipe
         exoskeleton_pub.write(*pkt);
-//         int bytes = write(exoskeleton_fd, (void *)pkt, BUFLEN_MASTER_2_SLAVE);
 
         // read from robot pipe
         robot_sub.read(*pkt_to_send);
-//         bytes = read(robot_fd, (void *)pkt_to_send, BUFLEN_SLAVE_2_MASTER);
+
 
         XBot::Logger::info("force sent: %f %f %f \n" , pkt_to_send->l_force_x, pkt_to_send->l_force_y, pkt_to_send->l_force_z);
 
@@ -149,7 +157,8 @@ int main(void)
         {
             die("sendto()");
         }
-//         usleep(1000); // 1 ms
+    
+        //usleep(1000); // 1 ms
     }
 
     close(s);

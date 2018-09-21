@@ -49,6 +49,21 @@ bool ExoskeletonCommunicationPlugin::init_control_plugin(XBot::Handle::Ptr handl
     // get robot
     _robot = handle->getRobotInterface();
 
+    auto _model = XBot::ModelInterface::getModel(handle->getPathToConfigFile());
+
+    YAML::Node yaml_file = YAML::LoadFile(handle->getPathToConfigFile());
+    XBot::Cartesian::ProblemDescription ik_problem(yaml_file["CartesianInterface"]["problem_description"], _model);
+
+    // NOTE it should be     _ci = std::make_shared<OpenSotImpl>(_model, ik_problem);
+//     std::string impl_name = yaml_file["CartesianInterface"]["solver"].as<std::string>();
+    _ci = std::make_shared<XBot::Cartesian::CartesianInterfaceImpl>(_model, ik_problem);
+    // TEST trying Reflexxes HACK assuming 1 ms period
+    _ci->enableOtg(0.001);
+    for(std::string task : _ci->getTaskList()) {
+        _ci->setVelocityLimits(task, 0.2, 0.1);
+        _ci->setAccelerationLimits(task, 1.0, 0.5);
+    }
+
     // Set offsets
     _left_ee_offset.setIdentity();
     _right_ee_offset.setIdentity();
@@ -139,16 +154,29 @@ void ExoskeletonCommunicationPlugin::control_loop(double time, double period)
     _exoskeleton_pipe.xddp_read<CentauroUDP::packet::master2slave>(_exoskeleton_pipe_packet);
     updateReferences();
 
-    // Write to shared memory
     _aux = _T_left_ee.get();
     _aux.translation() = _left_ee_offset.linear() * _aux.translation() + _left_ee_offset.translation();
-    _T_left_ee.set(_aux);
+    _ci->setPoseReference("arm1_8", _aux);
 
-    _aux = _T_right_ee.get();
+     _aux = _T_right_ee.get();
     _aux.translation() = _right_ee_offset.linear() * _aux.translation() + _right_ee_offset.translation();
-    _T_right_ee.set(_aux);
+    _ci->setPoseReference("arm2_8", _aux);
+    
+    if(!_ci->update(time, period))
+    {
+        XBot::Logger::error("CartesianInterface: unable to solve \n");
+        return;
+    }
+    
+    // NOTE the genius
+    Eigen::Affine3d ref_otg;
+   
+    _ci->getPoseReference("arm1_8", ref_otg);
+    _T_left_ee.set(ref_otg);
+   
+    _ci->getPoseReference("arm2_8", ref_otg);
+    _T_right_ee.set(ref_otg);
 
-    // command the hand
     if(_left_hand) {
         _left_hand->grasp(_exoskeleton_pipe_packet.l_handle_trigger * 0.75);
     }
@@ -198,6 +226,20 @@ void ExoskeletonCommunicationPlugin::control_loop(double time, double period)
 
     if( current_command.str() == "reset_ft") {
     	_reset_ft = true;
+    }
+    
+    if( current_command.str() == "filter_OFF") {
+    	for(std::string task : _ci->getTaskList()) {
+            _ci->setVelocityLimits(task, 0.5, 0.5);
+            _ci->setAccelerationLimits(task, 0.5, 0.5);
+        }
+    }
+    
+    if( current_command.str() == "filter_ON") {
+    	for(std::string task : _ci->getTaskList()) {
+            _ci->setVelocityLimits(task, 0.2, 0.1);
+            _ci->setAccelerationLimits(task, 1.0, 0.5);
+	}
     }
 
     if( _reset_ft ) {

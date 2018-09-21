@@ -27,6 +27,8 @@
 #include <CentauroAlexUDP/packet/master2slave.h>
 #include <CentauroAlexUDP/packet/slave2master.h>
 
+#include <cartesian_interface/CartesianInterfaceImpl.h>
+
 #include <XBotInterface/Utils.h>
 
 namespace demo {
@@ -86,7 +88,8 @@ namespace demo {
                                             _T_left_elb, 
                                             _T_right_elb;
 
-        
+       
+	XBot::Cartesian::CartesianInterfaceImpl::Ptr _ci; 
     };
     
 inline void demo::ExoskeletonCommunicationPlugin::rotationEigenToKDL(const Eigen::Matrix3d& eigen_rotation, KDL::Rotation& kdl_rotation) const
