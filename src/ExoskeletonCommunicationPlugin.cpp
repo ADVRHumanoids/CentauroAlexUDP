@@ -18,7 +18,7 @@
 */
 
 #include <CentauroAlexUDP/exoskeleton_communication_plugin.h>
-
+#include <geometry_msgs/WrenchStamped.h>
 #include <XBotInterface/Utils.h>
 
 #ifdef __XENO__
@@ -135,6 +135,13 @@ bool ExoskeletonCommunicationPlugin::init_control_plugin(XBot::Handle::Ptr handl
 
     // HACK HAND
     _left_hand = _robot->getHand(20);
+    
+    // force estimation
+    _force_est = std::make_shared<centauro::ForceEstimation>(_robot->model());
+    _force_est->getForce(&_tau_offset_right);
+    _force_est->getForce(&_tau_res_right);
+    
+    _pub_rt = handle->getRosHandle()->advertise<geometry_msgs::WrenchStamped>("/force_estimation", 3);
 
     _logger = XBot::MatLogger::getLogger("/tmp/AlexLogger");
 
@@ -145,6 +152,17 @@ bool ExoskeletonCommunicationPlugin::init_control_plugin(XBot::Handle::Ptr handl
 
 void ExoskeletonCommunicationPlugin::control_loop(double time, double period)
 {
+    
+    // estimate force based on joint torque
+    _force_est->compute();
+    geometry_msgs::WrenchStamped f_msg;
+    f_msg.header.stamp = ros::Time(XBot::get_time_ns(CLOCK_REALTIME) * 1e-9);
+    
+    f_msg.wrench.force.x = _force_est->getForce().x();
+    f_msg.wrench.force.y = _force_est->getForce().y();
+    f_msg.wrench.force.z = _force_est->getForce().z();
+    
+    _pub_rt->pushToQueue(f_msg);
 
     // Save previous sample
     _position_left_ee_q = _position_left_ee;
@@ -213,12 +231,18 @@ void ExoskeletonCommunicationPlugin::control_loop(double time, double period)
     //Logger::info(Logger::Severity::HIGH, "TRASFORMED Right f: %f %f %f", w(0), w(1), w(2));
 
     // fill the robot pipe pkt
-    _robot_pipe_packet.r_force_x = w(0);
-    _robot_pipe_packet.r_force_y = w(1);
-    _robot_pipe_packet.r_force_z = w(2);
-    _robot_pipe_packet.r_torque_x = w(3);
-    _robot_pipe_packet.r_torque_y = w(4);
-    _robot_pipe_packet.r_torque_z = w(5);
+    // NOTE we use Arturo's estimation
+    
+    const double max_force = 40.0;
+    Eigen::Vector3d f_sat = _force_est->getForce().array().min(max_force).max(-max_force);
+    
+    _robot_pipe_packet.r_force_x = f_sat.x();
+    _robot_pipe_packet.r_force_y = f_sat.y();
+    _robot_pipe_packet.r_force_z = f_sat.z();
+    _robot_pipe_packet.r_torque_x = 0.0;
+    _robot_pipe_packet.r_torque_y = 0.0;
+    _robot_pipe_packet.r_torque_z = 0.0;
+    
 
 
     // send it to the XDDP robot pipe
@@ -231,7 +255,7 @@ void ExoskeletonCommunicationPlugin::control_loop(double time, double period)
     if( current_command.str() == "filter_OFF") {
     	for(std::string task : _ci->getTaskList()) {
             _ci->setVelocityLimits(task, 0.5, 0.5);
-            _ci->setAccelerationLimits(task, 0.5, 0.5);
+            _ci->setAccelerationLimits(task, 1.0, 1.0);
         }
     }
     
@@ -254,6 +278,9 @@ void ExoskeletonCommunicationPlugin::control_loop(double time, double period)
 }
 
 void ExoskeletonCommunicationPlugin::resetFT() {
+    
+    
+    
     Eigen::Vector6d l_wrench, r_wrench;
     l_wrench.setZero();
     r_wrench.setZero();
@@ -274,6 +301,7 @@ void ExoskeletonCommunicationPlugin::resetFT() {
 
         l_ft_filter.reset(l_wrench);
         r_ft_filter.reset(r_wrench);
+        _tau_offset_right.setZero();
 
     }
 
@@ -282,12 +310,17 @@ void ExoskeletonCommunicationPlugin::resetFT() {
 
     _l_ft_offset = l_ft_filter.process(l_wrench);
     _r_ft_offset = r_ft_filter.process(r_wrench);
+    _force_est->getForce(&_tau_res_right);
+    _tau_offset_right += _tau_res_right;
+    
 
 
     // check for the trh
     if( _reset_ft_count == N_FILTER_SAMPLE ) {
     	_reset_ft = false;
         _reset_ft_count = 0;
+        _tau_offset_right /= (N_FILTER_SAMPLE + 1);
+        _force_est->set_offset(_tau_offset_right);
     }
 }
 

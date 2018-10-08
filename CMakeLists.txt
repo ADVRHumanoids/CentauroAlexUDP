@@ -35,7 +35,7 @@ find_package(catkin REQUIRED COMPONENTS geometry_msgs roscpp cartesian_interface
 include_directories(include ${XCM_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS}) 
 
 # plugin
-add_library(AlexCommunication SHARED src/ExoskeletonCommunicationPlugin.cpp)
+add_library(AlexCommunication SHARED src/ExoskeletonCommunicationPlugin.cpp src/CentauroArmForceEstimation.cpp)
 
 # link
 target_link_libraries(AlexCommunication ${XCM_LIBRARIES} ${catkin_LIBRARIES})

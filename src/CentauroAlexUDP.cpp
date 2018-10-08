@@ -147,8 +147,8 @@ int main(void)
         robot_sub.read(*pkt_to_send);
 
 
-        XBot::Logger::info("force sent: %f %f %f \n" , pkt_to_send->l_force_x, pkt_to_send->l_force_y, pkt_to_send->l_force_z);
-
+        XBot::Logger::info("LEFT force sent: %f %f %f \n" , pkt_to_send->l_force_x, pkt_to_send->l_force_y, pkt_to_send->l_force_z);
+        XBot::Logger::info("RIGHT force sent: %f %f %f \n" , pkt_to_send->r_force_x, pkt_to_send->r_force_y, pkt_to_send->r_force_z);
 
         // put back the master timer
         pkt_to_send->timer_slave = pkt->timer_master;

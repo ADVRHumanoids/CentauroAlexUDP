@@ -31,6 +31,8 @@
 
 #include <XBotInterface/Utils.h>
 
+#include <CentauroAlexUDP/CentauroArmForceEstimation.h>
+
 namespace demo {
 
     class ExoskeletonCommunicationPlugin : public XBot::XBotControlPlugin {
@@ -53,14 +55,14 @@ namespace demo {
         inline void rotationEigenToKDL(const Eigen::Matrix3d& eigen_rotation, KDL::Rotation& kdl_rotation) const;
         inline void rotationKDLToEigen(const KDL::Rotation& kdl_rotation, Eigen::Matrix3d& eigen_rotation) const;
         
-	Eigen::Vector6d getWorldWrench( XBot::ForceTorqueSensor::ConstPtr ft );
+        Eigen::Vector6d getWorldWrench( XBot::ForceTorqueSensor::ConstPtr ft );
         
         Eigen::Affine3d _aux;
     
         XBot::RobotInterface::Ptr _robot;
         XBot::MatLogger::Ptr _logger;
 
-	XBot::Hand::Ptr _left_hand;
+        XBot::Hand::Ptr _left_hand;
         
         double _cutoff_freq;
         double _sampling_time;
@@ -74,6 +76,7 @@ namespace demo {
         Eigen::Vector3d _position_left_ee_filtered, _position_right_ee_filtered;
         Eigen::Vector3d _position_left_ee_q, _position_right_ee_q;
         Eigen::Vector3d _position_left_ee_qq, _position_right_ee_qq;
+        Eigen::VectorXd _tau_offset_right, _tau_res_right;
         
         Eigen::Affine3d _left_ee_offset, _right_ee_offset;
         
@@ -89,7 +92,10 @@ namespace demo {
                                             _T_right_elb;
 
        
-	XBot::Cartesian::CartesianInterfaceImpl::Ptr _ci; 
+        XBot::Cartesian::CartesianInterfaceImpl::Ptr _ci; 
+        
+        centauro::ForceEstimation::Ptr _force_est;
+        XBot::RosUtils::PublisherWrapper::Ptr _pub_rt;
     };
     
 inline void demo::ExoskeletonCommunicationPlugin::rotationEigenToKDL(const Eigen::Matrix3d& eigen_rotation, KDL::Rotation& kdl_rotation) const
