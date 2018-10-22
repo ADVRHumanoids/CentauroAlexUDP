@@ -257,6 +257,7 @@ void ExoskeletonCommunicationPlugin::control_loop(double time, double period)
             _ci->setVelocityLimits(task, 0.5, 0.5);
             _ci->setAccelerationLimits(task, 1.0, 1.0);
         }
+        XBot::Logger::success(XBot::Logger::Severity::HIGH, "Filter OFF complete\n");
     }
     
     if( current_command.str() == "filter_ON") {
@@ -264,6 +265,7 @@ void ExoskeletonCommunicationPlugin::control_loop(double time, double period)
             _ci->setVelocityLimits(task, 0.2, 0.1);
             _ci->setAccelerationLimits(task, 1.0, 0.5);
 	}
+    XBot::Logger::success(XBot::Logger::Severity::HIGH, "Filter ON complete\n");
     }
 
     if( _reset_ft ) {
@@ -321,6 +323,7 @@ void ExoskeletonCommunicationPlugin::resetFT() {
         _reset_ft_count = 0;
         _tau_offset_right /= (N_FILTER_SAMPLE + 1);
         _force_est->set_offset(_tau_offset_right);
+        XBot::Logger::success(XBot::Logger::Severity::HIGH, "Reset FT complete\n");
     }
 }
 
